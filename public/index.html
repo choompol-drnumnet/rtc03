@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width,initial-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>RTC03</title>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+</head>
+<body>
+<H1>RTC03 X</H1>
+<textarea id='txtsend1' rows="6"></textarea>
+<button id='btsend1'>send</button>
+<textarea id='txtrecv1' rows="6"></textarea>
+<hr>
+<textarea id='txtsend2' rows="6"></textarea>
+<button id='btsend2'>send</button>
+<textarea id='txtrecv2' rows="6"></textarea>
+</body>
+<script>
+//======================================================
+const txtsend1 = document.querySelector('#txtsend1');
+const btsend1 = document.querySelector('#btsend1');
+const txtrecv1 = document.querySelector('#txtrecv1');
+const txtsend2 = document.querySelector('#txtsend2');
+const btsend2 = document.querySelector('#btsend2');
+const txtrecv2 = document.querySelector('#txtrecv2');
+btsend1.onclick = send1;
+btsend2.onclick = send2;
+
+var pc1, pc2, ch1, ch2;
+
+function init() {
+  servers = null;
+  pc1 = new RTCPeerConnection(servers);
+  pc2 = new RTCPeerConnection(servers);
+  ch1 = pc1.createDataChannel('chan1');
+  pc2.ondatachannel = recvCh2CB;
+
+  pc1.onicecandidate = pc1Ice;
+  pc2.onicecandidate = pc2Ice;
+  ch1.onmessage = ch1Msg;
+  ch1.onopen = onCh1State;
+  ch1.onclose = onCh1State;
+
+alert('INIT 1');
+  pc1.createOffer().then(offerSucc, offerErr);
+}
+function send1() {
+  alert('ALERT1');
+  ch1.send("AAAA");
+};
+function send2() {
+  alert('ALERT2');
+};
+function onCh1State() {}
+function onCh2State() {}
+function recvCh2CB(e) {
+  alert('CALLBACK');
+  var ch2 = e.channel;
+  ch2.onmessage = ch2Msg;
+  ch2.onopen = onCh2State;
+  ch2.onclose = onCh2State;
+}
+function pc1Ice(e) {
+  alert('ON ICE Candi 1');
+  pc2.addIceCandidate(e.candidate);
+}
+function pc2Ice(e) {
+  alert('ON ICE Candi 2');
+  pc1.addIceCandidate(e.candidate);
+}
+function ch1Msg(e) {
+  alert("ch1msg: "+e.data);
+}
+function ch2Msg(e) {
+  alert("ch2msg: "+e.data);
+}
+function offerSucc(desc) {
+  pc1.setLocalDescription(desc);
+  pc2.setRemoteDescription(desc);
+  alert('OFFER SUCCESS 2');
+  pc2.createAnser().then(ansSucc, ansErr);
+}
+function offerErr() {
+  alert('ANSWER ERROR');
+}
+function ansSucc(desc) {
+  alert('ANSWER SUCCESS');
+  pc2.setLocalDescription(desc);
+  pc1.setRemoteDescription(desc);
+}
+
+init();
+//======================================================
+</script>
+</html>
+
